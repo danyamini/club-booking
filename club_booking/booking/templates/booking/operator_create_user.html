@@ -1,0 +1,56 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Создание пользователя{% endblock %}
+
+{% block content %}
+<style>
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+form {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+input {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #555555;
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+button {
+    padding: 12px 24px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #009688;
+    color: #ffffff;
+    cursor: pointer;
+}
+</style>
+
+<h1>Создание пользователя оператором</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <input type="text" name="phone_number" placeholder="Телефон" required>
+
+    <button type="submit">Создать</button>
+</form>
+
+{% if messages %}
+    {% for message in messages %}
+        <p style="text-align:center;">{{ message }}</p>
+    {% endfor %}
+{% endif %}
+{% endblock %}

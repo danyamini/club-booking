@@ -1,0 +1,112 @@
+{% extends "booking/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+h2, h3, p {
+    text-align: center;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+}
+
+a.button-link {
+    display: inline-block;
+    padding: 10px 15px;
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+    margin: 5px 0;
+}
+
+.booking-card, .booking-status {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: left;
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
+}
+
+.phone-form {
+    margin: 20px auto;
+    text-align: center;
+}
+
+.phone-form input {
+    padding: 5px;
+    width: 200px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+
+.phone-form button {
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: none;
+    background-color: #28A745;
+    color: white;
+    cursor: pointer;
+}
+</style>
+
+<h2>Профиль пользователя: {{ user.username }}</h2>
+
+<!-- Форма для редактирования номера телефона -->
+<form method="post" class="phone-form">
+    {% csrf_token %}
+    <input type="text" name="phone_number" placeholder="Введите номер телефона"
+           value="{{ phone_number_value|default_if_none:'' }}">
+    <button type="submit">Сохранить номер телефона</button>
+</form>
+
+<p>
+    <a href="{% url 'logout' %}" class="button-link" style="background-color:#DC3545;">Выйти</a>
+</p>
+
+{% if role_name == 'client' %}
+    <h3>Мои бронирования</h3>
+    {% if bookings %}
+        {% for b in bookings %}
+            <div class="booking-card">
+                <p><strong>ID брони:</strong> {{ b.unique_id }}</p>
+                <p><strong>Место:</strong> {{ b.workplace.name }}</p>
+                <p><strong>Время:</strong> {{ b.start_time|date:"d.m.Y H:i" }} - {{ b.end_time|date:"H:i" }}</p>
+                <p><strong>Сумма:</strong> {{ b.cost }} руб.</p>
+                <p><strong>Статус:</strong>
+                    {% if b.status == 'pending' %}<span style="color:orange;">Ожидает подтверждения</span>
+                    {% elif b.status == 'confirmed' %}<span style="color:green;">Подтверждено</span>
+                    {% elif b.status == 'rejected' %}<span style="color:red;">Отклонено</span>
+                    {% else %}<span>Неизвестно</span>{% endif %}
+                </p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>У вас пока нет бронирований.</p>
+    {% endif %}
+
+{% elif role_name == 'mechanic' %}
+    <h3>Механик</h3>
+    <p><a href="{% url 'mechanic_computers' %}" class="button-link" style="background-color:#007BFF;">Перейти к компьютерам</a></p>
+
+{% elif role_name == 'operator' %}
+    <h3>Оператор</h3>
+    <p><a href="{% url 'operator_bookings' %}" class="button-link" style="background-color:#28A745;">Перейти к бронированиям</a></p>
+{% endif %}
+
+{% if booking %}
+    <h3>Статус бронирования по уникальному ID</h3>
+    <div class="booking-status">
+        <p><strong>ID брони:</strong> {{ booking.unique_id }}</p>
+        <p><strong>Место:</strong> {{ booking.workplace.name }}</p>
+        <p><strong>Время:</strong> {{ booking.start_time|date:"d.m.Y H:i" }} - {{ booking.end_time|date:"H:i" }}</p>
+        <p><strong>Сумма:</strong> {{ booking.cost }} руб.</p>
+        <p><strong>Статус:</strong>
+            {% if booking.status == 'pending' %}<span style="color:orange;">Ожидает подтверждения</span>
+            {% elif booking.status == 'confirmed' %}<span style="color:green;">Подтверждено</span>
+            {% elif booking.status == 'rejected' %}<span style="color:red;">Отклонено</span>
+            {% else %}<span>Неизвестно</span>{% endif %}
+        </p>
+    </div>
+{% endif %}
+
+{% endblock %}

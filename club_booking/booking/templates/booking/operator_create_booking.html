@@ -1,0 +1,298 @@
+{% extends 'booking/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Создать бронирование от имени пользователя{% endblock %}
+
+{% block content %}
+<style>
+main, h2, h3, p, label, select, input, button, .workplaces-list, #booking-summary, .booking-info {
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff;
+}
+
+select, input[type="time"] {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #555555;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    text-align: center;
+}
+
+button {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 5px;
+    border: 2px solid #009688;
+    background-color: #009688;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: box-shadow 0.3s;
+}
+
+button:hover {
+    box-shadow: 0 0 10px rgba(0,150,136,0.7);
+}
+
+.date-slider {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:auto;
+    gap:5px;
+    margin-bottom:10px;
+    min-height:70px;
+}
+.dates-container {
+    display:flex;
+    gap:5px;
+}
+.date-btn {
+    padding:5px 10px;
+    width: 100px;
+    min-width: 100px;
+    height: 50px;
+    line-height: 1.2;
+    border:1px solid #00796b;
+    border-radius:5px;
+    background-color:#00796b;
+    color:#ffffff;
+    cursor:pointer;
+    flex-shrink:0;
+    box-sizing: border-box;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: box-shadow 0.3s, border-color 0.3s;
+}
+.date-btn.selected-date {
+    background-color:#009688;
+    border:2px solid #a0ffd4;
+}
+
+.time-selection { margin-bottom:10px; display:flex; justify-content:center; gap:10px; align-items:center; }
+
+.workplaces-list { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:20px; }
+.clear { flex-basis: 100%; height: 0; }
+.workplace {
+    width: 120px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #009688;
+    border-radius: 5px;
+    cursor: pointer;
+    box-sizing: border-box;
+    background-color:#555555;
+    transition: box-shadow 0.1s, background-color 0.2s;
+}
+.workplace.working { background-color:#00796b; }
+.workplace.booked { background-color:#d16666; cursor:not-allowed; }
+.workplace.repair { background-color:#665500; cursor:not-allowed; }
+.workplace.selected { border:2px solid #a0ffd4; box-shadow:0 0 5px #009688; }
+
+#booking-summary, .booking-info {
+    margin:20px auto;
+    padding:10px;
+    border-radius:5px;
+    max-width:400px;
+    text-align:center;
+}
+#booking-summary { border:1px solid #009688; background-color:#00251a; }
+.booking-info { border:1px solid #009688; background-color:#004d40; }
+
+#book-button {
+    font-size: 1.5rem;
+    padding: 10px 20px;
+}
+
+h2, h3 { margin-top:20px; margin-bottom:10px; }
+</style>
+
+<h2>Создание бронирования от имени пользователя</h2>
+
+<form method="post" id="booking-form" action="{% url 'operator_create_booking' %}">
+    {% csrf_token %}
+    <label for="username">Пользователь:</label>
+    <select id="username" name="username" required>
+        {% for user in users %}
+            <option value="{{ user.username }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="date-slider">
+        <div class="dates-container"></div>
+    </div>
+
+    <div class="time-selection">
+        <label>Время начала:</label>
+        <input type="time" id="start-input" required>
+        <label>Время окончания:</label>
+        <input type="time" id="end-input" required>
+    </div>
+
+    <h3>Выберите рабочие места</h3>
+    <div class="workplaces-list">
+        {% for wp in workplaces %}
+            <div class="workplace {{ workplace_status|dict_key:wp.id }}"
+                 data-id="{{ wp.id }}"
+                 data-price="{{ wp.tariff.price_per_hour|default:300 }}">
+                 {{ wp.name }}
+            </div>
+            {% if forloop.counter|divisibleby:5 %}
+                <div class="clear"></div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <h3>Ваши выбранные места</h3>
+    <div id="booking-summary">
+        <p>Выберите места, чтобы увидеть детали бронирования.</p>
+    </div>
+
+    <input type="hidden" name="date" id="date">
+    <input type="hidden" name="start_time" id="start_time">
+    <input type="hidden" name="end_time" id="end_time">
+    <input type="hidden" name="workplace_ids" id="workplace_ids">
+    <button type="submit" id="book-button" disabled>Создать бронирование</button>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const workplaces = document.querySelectorAll('.workplace');
+    const selected = new Map();
+    const bookButton = document.getElementById('book-button');
+    const summaryDiv = document.getElementById('booking-summary');
+    const dateInput = document.getElementById('date');
+    const startInput = document.getElementById('start-input');
+    const endInput = document.getElementById('end-input');
+    const workplaceIdsInput = document.getElementById('workplace_ids');
+    const datesContainer = document.querySelector('.dates-container');
+
+    function generateDates() {
+        datesContainer.innerHTML = '';
+        const today = new Date();
+        for(let i=0;i<7;i++){
+            const d = new Date();
+            d.setDate(today.getDate()+i);
+            const dateStr = d.toISOString().split('T')[0];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = d.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'});
+            btn.dataset.date = dateStr;
+            btn.classList.add('date-btn');
+            if(i===0){ btn.classList.add('selected-date'); dateInput.value=dateStr; }
+            btn.addEventListener('click', ()=> {
+                dateInput.value = dateStr;
+                document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('selected-date'));
+                btn.classList.add('selected-date');
+                clearSelection();
+                checkAvailability();
+            });
+            datesContainer.appendChild(btn);
+        }
+    }
+    generateDates();
+
+    function isTimeValid(start,end){
+        if(!start||!end) return false;
+        const [h1,m1]=start.split(':').map(Number);
+        const [h2,m2]=end.split(':').map(Number);
+        return h1<h2||(h1===h2 && m1<m2);
+    }
+
+    function clearSelection(){
+        selected.clear();
+        workplaces.forEach(div=>div.classList.remove('selected'));
+        updateSummary();
+    }
+
+    function updateSummary(){
+        if(selected.size===0){
+            summaryDiv.innerHTML='<p>Выберите места, чтобы увидеть детали бронирования.</p>';
+            bookButton.disabled=true;
+        } else {
+            let html='<ul style="list-style:none;padding:0;">';
+            selected.forEach((data,id)=>{
+                const wpDiv=document.querySelector(`.workplace[data-id='${id}']`);
+                const pricePerHour=parseFloat(wpDiv.dataset.price||0);
+                const [sh,sm]=data.start.split(':').map(Number);
+                const [eh,em]=data.end.split(':').map(Number);
+                const duration=(eh + em/60) - (sh + sm/60);
+                const cost=(duration*pricePerHour).toFixed(2);
+                html+=`<li>Место ${id}: ${data.start} - ${data.end} | Цена: ${cost}₽</li>`;
+            });
+            html+='</ul>';
+            summaryDiv.innerHTML=html;
+            bookButton.disabled=false;
+        }
+    }
+
+    async function checkAvailability(){
+        const start=startInput.value;
+        const end=endInput.value;
+        const date=dateInput.value;
+        workplaces.forEach(async div=>{
+            const id=div.dataset.id;
+            if(!date || !start || !end || !isTimeValid(start,end)){
+                div.classList.remove('working', 'booked', 'selected');
+                div.style.backgroundColor = '#555555';
+                div.style.cursor='not-allowed';
+                return;
+            }
+            const res = await fetch(`{% url 'workplace_availability' %}?workplace_id=${id}&date=${date}&start=${start}&end=${end}`);
+            const data = await res.json();
+            if(data.available){
+                div.classList.add('working');
+                div.classList.remove('booked');
+                div.style.cursor='pointer';
+                div.style.backgroundColor = '#00796b';
+            } else {
+                div.classList.remove('working');
+                div.classList.add('booked');
+                div.style.cursor='not-allowed';
+                div.style.backgroundColor = '#d16666';
+                div.classList.remove('selected');
+                selected.delete(id);
+                updateSummary();
+            }
+        });
+    }
+
+    startInput.addEventListener('change', ()=> { clearSelection(); checkAvailability(); });
+    endInput.addEventListener('change', ()=> { clearSelection(); checkAvailability(); });
+
+    workplaces.forEach(div=>{
+        div.addEventListener('click', ()=>{
+            if(!div.classList.contains('working')) return;
+            const id=div.dataset.id;
+            if(selected.has(id)){
+                selected.delete(id);
+                div.classList.remove('selected');
+            } else {
+                selected.set(id,{start:startInput.value,end:endInput.value});
+                div.classList.add('selected');
+            }
+            workplaceIdsInput.value=Array.from(selected.keys()).join(',');
+            document.getElementById('start_time').value=startInput.value;
+            document.getElementById('end_time').value=endInput.value;
+            updateSummary();
+        });
+    });
+
+    document.getElementById('booking-form').addEventListener('submit', e=>{
+        if(!isTimeValid(startInput.value,endInput.value)){
+            e.preventDefault();
+            alert('Проверьте время: начало должно быть раньше конца');
+        }
+        if(selected.size===0){
+            e.preventDefault();
+            alert('Выберите хотя бы одно место для бронирования');
+        }
+    });
+});
+</script>
+{% endblock %}

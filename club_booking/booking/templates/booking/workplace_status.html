@@ -1,0 +1,17 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Статус рабочих мест{% endblock %}
+
+{% block content %}
+<h1>Статус рабочих мест</h1>
+<ul>
+    {% for wp in workplaces %}
+        <li>{{ wp.name }} — {{ wp.computer.name }} —
+            {% if wp.computer.status == 'working' %}Доступно{% endif %}
+            {% if wp.computer.status == 'broken' %}Не работает{% endif %}
+            {% if wp.computer.status == 'repair' %}В ремонте{% endif %}
+        </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'main' %}">Вернуться на главную</a>
+{% endblock %}

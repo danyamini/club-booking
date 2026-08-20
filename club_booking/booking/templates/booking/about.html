@@ -1,0 +1,88 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}О клубе{% endblock %}
+
+{% block content %}
+<style>
+main, h1, h2, h3, p, ul, li, a {
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff;
+}
+
+/* Разделы информации */
+.section {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+/* Полоса между блоками */
+.section:not(:last-child)::after {
+    content: "";
+    display: block;
+    width: 80%;
+    height: 2px;
+    background-color: #009688;
+    margin: 20px auto 0 auto;
+    border-radius: 1px;
+}
+
+h1, h2, h3 { margin-bottom: 15px; }
+
+ul { list-style: none; padding: 0; }
+li { margin-bottom: 8px; }
+
+.map-widget {
+    width: 100%;
+    height: 300px;
+    background-color: #004d40;
+    border-radius: 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#a0ffd4;
+    font-weight:bold;
+    margin-bottom: 20px;
+}
+
+.contact-info p, .social-links li { margin:5px 0; }
+.social-links a { color: #00e5ff; text-decoration: none; transition: color 0.2s; }
+.social-links a:hover { color: #a0ffd4; }
+</style>
+
+<div class="section about-club">
+    <h2>О нашем клубе</h2>
+    <p>Клуб предлагает комфортные рабочие места, высокопроизводительные компьютеры и регулярные акции для посетителей.</p>
+    <p><strong>Акции:</strong> Скидка 20% в будние дни с 10:00 до 14:00!</p>
+</div>
+
+<div class="section address">
+    <h2>Адрес</h2>
+    <p>г. Москва, ул. Примерная, 1</p>
+    <div class="map-widget">
+        Здесь будет карта
+    </div>
+</div>
+
+<div class="section contact-info">
+    <h2>Контакты</h2>
+    <p>Телефон: +7 999 123-45-67</p>
+    <p>Email: info@club-example.ru</p>
+</div>
+
+<div class="section social-links">
+    <h2>Мы в соцсетях</h2>
+    <ul>
+        <li><a href="#">VK</a></li>
+        <li><a href="#">Telegram</a></li>
+        <li><a href="#">Max</a></li>
+    </ul>
+</div>
+
+<div class="section additional-info">
+    <h2>Дополнительно</h2>
+    <p>Клуб открыт круглосуточно.</p>
+    <p>Бесплатный Wi-Fi для всех посетителей.</p>
+</div>
+{% endblock %}

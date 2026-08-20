@@ -1,0 +1,180 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Комплектующие{% endblock %}
+
+{% block content %}
+<style>
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 0 auto 30px auto;
+    width: 90%;
+    max-width: 1000px;
+    text-align: center;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    border: 1px solid #009688;
+    padding: 10px;
+    font-size: 1rem;
+}
+
+th {
+    background-color: #009688;
+    color: #ffffff;
+}
+
+td {
+    color: #ffffff;
+}
+
+tr:nth-child(even) td {
+    background-color: #2c2c2c;
+}
+
+tr:hover td {
+    background-color: #004d40;
+    transition: background-color 0.3s;
+}
+
+td:first-child, th:first-child {
+    border-right: 2px solid #009688;
+}
+
+.add-component-form {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto 50px auto;
+    background-color: #2c2c2c;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.add-component-form p {
+    margin-bottom: 10px;
+}
+
+.add-component-form input {
+    padding: 5px;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #009688;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button.save-btn {
+    padding: 6px 12px;
+    font-size: 1rem;
+    background-color: #009688;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 10px;
+}
+
+button.save-btn:hover {
+    background-color: #00796b;
+}
+</style>
+
+<h1>Все комплектующие</h1>
+
+<!-- CPU -->
+<h2>CPU</h2>
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Уникальный ID</th>
+    </tr>
+    {% for cpu in cpus %}
+    <tr>
+        <td>{{ cpu.name }}</td>
+        <td>{{ cpu.identifier }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<form method="post" class="add-component-form">
+    {% csrf_token %}
+    {{ cpu_form.as_p }}
+    <button type="submit" name="add_cpu" class="save-btn">Добавить CPU</button>
+</form>
+
+<!-- GPU -->
+<h2>GPU</h2>
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Уникальный ID</th>
+    </tr>
+    {% for gpu in gpus %}
+    <tr>
+        <td>{{ gpu.name }}</td>
+        <td>{{ gpu.identifier }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<form method="post" class="add-component-form">
+    {% csrf_token %}
+    {{ gpu_form.as_p }}
+    <button type="submit" name="add_gpu" class="save-btn">Добавить GPU</button>
+</form>
+
+<!-- RAM -->
+<h2>RAM</h2>
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Уникальный ID</th>
+    </tr>
+    {% for ram in rams %}
+    <tr>
+        <td>{{ ram.name }}</td>
+        <td>{{ ram.identifier }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<form method="post" class="add-component-form">
+    {% csrf_token %}
+    {{ ram_form.as_p }}
+    <button type="submit" name="add_ram" class="save-btn">Добавить RAM</button>
+</form>
+
+<!-- Storage -->
+<h2>Storage</h2>
+<table>
+    <tr>
+        <th>Название</th>
+        <th>Уникальный ID</th>
+    </tr>
+    {% for storage in storages %}
+    <tr>
+        <td>{{ storage.name }}</td>
+        <td>{{ storage.identifier }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<form method="post" class="add-component-form">
+    {% csrf_token %}
+    {{ storage_form.as_p }}
+    <button type="submit" name="add_storage" class="save-btn">Добавить Storage</button>
+</form>
+
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Все компьютеры{% endblock %}
+
+{% block content %}
+<style>
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 0 auto 30px auto;
+    width: 90%;
+    max-width: 1000px;
+    text-align: center;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    border: 1px solid #009688;
+    padding: 10px;
+    font-size: 1rem;
+}
+
+th {
+    background-color: #009688;
+    color: #ffffff;
+}
+
+td {
+    color: #ffffff;
+}
+
+tr:nth-child(even) td {
+    background-color: #2c2c2c;
+}
+
+tr:hover td {
+    background-color: #004d40;
+    transition: background-color 0.3s;
+}
+
+select, input, .django-select {
+    padding: 5px;
+    font-size: 1rem;
+    border-radius: 4px;
+    border: 1px solid #009688;
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+button.save-btn {
+    padding: 6px 12px;
+    font-size: 1rem;
+    background-color: #009688;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button.save-btn:hover {
+    background-color: #00796b;
+}
+
+.add-computer-form {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto 50px auto;
+    background-color: #2c2c2c;
+    padding: 20px;
+    border-radius: 8px;
+}
+.add-computer-form p {
+    margin-bottom: 10px;
+}
+</style>
+
+<h1>Все компьютеры</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <table>
+        <tr>
+            <th>Номер компьютера</th>
+            <th>Номер рабочего места</th>
+            <th>Статус</th>
+            <th>CPU</th>
+            <th>GPU</th>
+            <th>RAM</th>
+            <th>Storage</th>
+            <th>Действия</th>
+        </tr>
+        {% for item in computer_forms %}
+        <tr>
+            <td>{{ item.computer.name }}</td>
+            <td>{{ item.form.workplace }}</td>
+            <td>{{ item.form.status }}</td>
+            <td>{{ item.form.cpu }}</td>
+            <td>{{ item.form.gpu }}</td>
+            <td>{{ item.form.ram }}</td>
+            <td>{{ item.form.storage }}</td>
+            <td>
+                <button type="submit" class="save-btn">Сохранить</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>
+
+<h2>Добавить новый компьютер</h2>
+<form method="post" class="add-computer-form">
+    {% csrf_token %}
+    {{ new_computer_form.as_p }}
+    <button type="submit" name="add_computer" class="save-btn">Добавить компьютер</button>
+</form>
+
+{% endblock %}

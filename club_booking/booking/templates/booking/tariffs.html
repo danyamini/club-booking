@@ -1,0 +1,17 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Тарифы{% endblock %}
+
+{% block content %}
+<h1>Подробные тарифы</h1>
+{% if tariffs %}
+    <ul>
+        {% for tariff in tariffs %}
+            <li>{{ tariff.name }} — {{ tariff.price }} руб./час</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Тарифы пока не заданы.</p>
+{% endif %}
+<a href="{% url 'main' %}">Вернуться на главную</a>
+{% endblock %}

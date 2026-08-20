@@ -1,0 +1,136 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Бронирования{% endblock %}
+
+{% block content %}
+<style>
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+    font-size: 2rem;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 0 auto 30px auto;
+    width: 95%;
+    max-width: 1200px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+th, td {
+    border: 1px solid #009688;
+    padding: 12px;
+}
+
+th {
+    background-color: #009688;
+    color: #ffffff;
+    font-size: 1.1rem;
+}
+
+td {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+tr:nth-child(even) td {
+    background-color: #2c2c2c;
+}
+
+tr:hover td {
+    background-color: #004d40;
+    transition: background-color 0.3s;
+}
+
+form { display: inline-block; margin:0; padding:0; }
+
+select {
+    padding: 6px;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #009688;
+    font-size: 1rem;
+}
+
+.booking-btn {
+    padding: 8px 0;
+    margin: 2px;
+    width: 110px;
+    border-radius: 5px;
+    border: none;
+    background-color: #009688;
+    color: #ffffff;
+    cursor: pointer;
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: box-shadow 0.3s;
+}
+
+.booking-btn:hover {
+    box-shadow: 0 0 10px rgba(0,150,136,0.7);
+}
+</style>
+
+<h1>Бронирования</h1>
+<table>
+    <tr>
+        <th>Клиент</th>
+        <th>Телефон</th>
+        <th>Рабочее место</th>
+        <th>Тариф</th>
+        <th>Время начала</th>
+        <th>Время конца</th>
+        <th>Стоимость</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    {% for booking in bookings %}
+    <tr>
+        <td>{% if booking.user %}{{ booking.user.username }}{% else %}Гость{% endif %}</td>
+        <td>
+            {% if booking.user %}
+                {% with booking.user.phonenumber_set.first as phone %}
+                    {% if phone %}{{ phone.phone_number }}{% else %}-{% endif %}
+                {% endwith %}
+            {% else %}
+                {{ booking.phone|default:"-" }}
+            {% endif %}
+        </td>
+        <td>{{ booking.workplace.name }}</td>
+        <td>{{ booking.tariff.name }}</td>
+        <td>{{ booking.start_time|date:"d.m.Y H:i" }}</td>
+        <td>{{ booking.end_time|date:"d.m.Y H:i" }}</td>
+        <td>{{ booking.cost }}</td>
+        <td>
+            <form method="post" action="{% url 'booking_update' booking.id %}">
+                {% csrf_token %}
+                <select name="status" onchange="if(confirm('Вы уверены, что хотите изменить статус?')){ this.form.submit(); } else { this.selectedIndex = 0; }">
+                    <option value="{{ booking.status }}" selected>{{ booking.get_status_display }}</option>
+                    <option value="pending">В ожидании</option>
+                    <option value="confirmed">Подтверждено</option>
+                    <option value="rejected">Отклонено</option>
+                </select>
+            </form>
+        </td>
+        <td>
+            {% if booking.status == 'pending' %}
+            <form method="post" action="{% url 'booking_update' booking.id %}" onsubmit="return confirm('Вы уверены, что хотите подтвердить бронирование?');">
+                {% csrf_token %}
+                <button type="submit" name="status" value="confirmed" class="booking-btn">Подтвердить</button>
+            </form>
+            <form method="post" action="{% url 'booking_update' booking.id %}" onsubmit="return confirm('Вы уверены, что хотите отклонить бронирование?');">
+                {% csrf_token %}
+                <button type="submit" name="status" value="rejected" class="booking-btn">Отклонить</button>
+            </form>
+            {% else %}
+                —
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
